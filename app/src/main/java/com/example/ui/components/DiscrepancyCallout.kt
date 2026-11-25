@@ -24,6 +24,10 @@ import androidx.compose.ui.unit.dp
 import com.example.data.model.DiscrepancyClaim
 import com.example.ui.theme.DesignStyle
 import com.example.ui.theme.LocalDesignStyle
+import com.example.ui.theme.LocalDeviceProfile
+import com.example.ui.theme.LocalIsDarkTheme
+import com.example.ui.theme.NothingRedTintDark
+import com.example.ui.theme.NothingRedTintLight
 import com.example.ui.theme.SignalRed
 
 @Composable
@@ -32,11 +36,13 @@ fun DiscrepancyCallout(
     modifier: Modifier = Modifier
 ) {
     val designStyle = LocalDesignStyle.current
+    val deviceProfile = LocalDeviceProfile.current
+    val isDark = LocalIsDarkTheme.current
     val isNothing = designStyle == DesignStyle.NOTHING_OS
 
-    val shape = RoundedCornerShape(if (isNothing) 4.dp else 18.dp)
+    val shape = RoundedCornerShape(deviceProfile.cardRadius)
     val cardBackground = if (isNothing) {
-        Color(0xFF140707) // Deep dark red-tinted surface for Nothing OS
+        if (isDark) NothingRedTintDark else NothingRedTintLight
     } else {
         MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.35f)
     }
@@ -52,7 +58,7 @@ fun DiscrepancyCallout(
                 color = if (isNothing) SignalRed.copy(alpha = 0.8f) else MaterialTheme.colorScheme.error,
                 shape = shape
             )
-            .padding(14.dp)
+            .padding(deviceProfile.cardPadding)
     ) {
         Column {
             // Header Warning Tag
@@ -62,15 +68,16 @@ fun DiscrepancyCallout(
             ) {
                 Box(
                     modifier = Modifier
-                        .size(7.dp)
+                        .size(6.dp)
                         .clip(CircleShape)
                         .background(SignalRed)
                 )
                 Spacer(modifier = Modifier.size(6.dp))
                 Text(
-                    text = if (isNothing) "[FLAGGED DISCREPANCY // FACT CHECK ACTIVE]" else "Flagged Claim Discrepancy",
+                    text = if (isNothing) "[FLAGGED DISCREPANCY // FACT CHECK]" else "Flagged Claim Discrepancy",
                     style = MaterialTheme.typography.labelMedium,
-                    color = SignalRed
+                    color = SignalRed,
+                    maxLines = 1
                 )
             }
 
@@ -90,7 +97,7 @@ fun DiscrepancyCallout(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(if (isNothing) 2.dp else 12.dp))
-                    .background(if (isNothing) Color(0xFF0F0F0F) else MaterialTheme.colorScheme.surface.copy(alpha = 0.7f))
+                    .background(if (isNothing) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.surface.copy(alpha = 0.7f))
                     .padding(10.dp)
             ) {
                 Text(

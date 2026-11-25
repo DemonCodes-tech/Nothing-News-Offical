@@ -13,6 +13,8 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
 
 enum class DesignStyle {
     NOTHING_OS,
@@ -20,47 +22,56 @@ enum class DesignStyle {
 }
 
 val LocalDesignStyle = staticCompositionLocalOf { DesignStyle.NOTHING_OS }
+val LocalIsDarkTheme = staticCompositionLocalOf { true }
 
 private val NothingDarkColorScheme = darkColorScheme(
     primary = Color.White,
     onPrimary = Color.Black,
-    primaryContainer = NothingSurfaceDark,
-    onPrimaryContainer = Color.White,
+    primaryContainer = Color.White,
+    onPrimaryContainer = Color.Black,
     secondary = NothingTextSecondaryDark,
     onSecondary = Color.Black,
+    secondaryContainer = Color(0xFF1E1E1E),
+    onSecondaryContainer = Color.White,
     background = NothingBlack,
     onBackground = NothingTextPrimaryDark,
     surface = NothingSurfaceDark,
     onSurface = NothingTextPrimaryDark,
     surfaceVariant = Color(0xFF222222),
     onSurfaceVariant = NothingTextSecondaryDark,
-    surfaceContainerLow = Color(0xFF141414),
-    surfaceContainerHigh = Color(0xFF242424),
+    surfaceContainerLow = NothingSurfaceLowDark,
+    surfaceContainerHigh = NothingSurfaceHighDark,
     outline = NothingBorderDark,
-    outlineVariant = Color(0xFF252525),
+    outlineVariant = Color(0xFF282828),
     error = SignalRed,
-    onError = Color.White
+    onError = Color.White,
+    errorContainer = NothingRedTintDark,
+    onErrorContainer = Color(0xFFFFB4AB)
 )
 
 private val NothingLightColorScheme = lightColorScheme(
-    primary = Color.Black,
+    primary = NothingTextPrimaryLight,
     onPrimary = Color.White,
-    primaryContainer = NothingSurfaceLight,
-    onPrimaryContainer = Color.Black,
+    primaryContainer = Color(0xFF181818),
+    onPrimaryContainer = Color.White,
     secondary = NothingTextSecondaryLight,
     onSecondary = Color.White,
+    secondaryContainer = Color(0xFFEDEDED),
+    onSecondaryContainer = NothingTextPrimaryLight,
     background = NothingWhite,
     onBackground = NothingTextPrimaryLight,
     surface = NothingSurfaceLight,
     onSurface = NothingTextPrimaryLight,
     surfaceVariant = Color(0xFFEBEBEB),
     onSurfaceVariant = NothingTextSecondaryLight,
-    surfaceContainerLow = Color(0xFFF0F0F0),
-    surfaceContainerHigh = Color(0xFFE2E2E2),
+    surfaceContainerLow = NothingSurfaceLowLight,
+    surfaceContainerHigh = NothingSurfaceHighLight,
     outline = NothingBorderLight,
-    outlineVariant = Color(0xFFDDDDDD),
+    outlineVariant = Color(0xFFDCDCDC),
     error = SignalRed,
-    onError = Color.White
+    onError = Color.White,
+    errorContainer = NothingRedTintLight,
+    onErrorContainer = Color(0xFF8C1D18)
 )
 
 private val FallbackMaterialDark = darkColorScheme(
@@ -80,6 +91,10 @@ private val FallbackMaterialDark = darkColorScheme(
     onSurfaceVariant = Color(0xFFCAC4D0),
     surfaceContainerLow = Color(0xFF1D1B20),
     surfaceContainerHigh = Color(0xFF2B2930),
+    tertiary = Color(0xFFEFB8C8),
+    onTertiary = Color(0xFF492532),
+    tertiaryContainer = Color(0xFF633B48),
+    onTertiaryContainer = Color(0xFFFFD8E4),
     error = Color(0xFFF2B8B5),
     onError = Color(0xFF601410),
     errorContainer = Color(0xFF8C1D18)
@@ -94,6 +109,10 @@ private val FallbackMaterialLight = lightColorScheme(
     onSecondary = Color.White,
     secondaryContainer = Color(0xFFE8DEF8),
     onSecondaryContainer = Color(0xFF1D192B),
+    tertiary = Color(0xFF7D5260),
+    onTertiary = Color.White,
+    tertiaryContainer = Color(0xFFFFD8E4),
+    onTertiaryContainer = Color(0xFF31111D),
     background = Color(0xFFFEF7FF),
     onBackground = Color(0xFF1D1B20),
     surface = Color(0xFFFEF7FF),
@@ -111,9 +130,22 @@ private val FallbackMaterialLight = lightColorScheme(
 fun NothingNewsTheme(
     designStyle: DesignStyle = DesignStyle.NOTHING_OS,
     darkTheme: Boolean = isSystemInDarkTheme(),
+    appFontScale: Float = 1.0f,
+    hapticFeedbackEnabled: Boolean = true,
     content: @Composable () -> Unit
 ) {
     val context = LocalContext.current
+    val currentDensity = LocalDensity.current
+    val clampedUserScale = appFontScale.coerceIn(1.0f, 1.5f)
+    val scaledDensity = Density(
+        density = currentDensity.density,
+        fontScale = (currentDensity.fontScale.coerceIn(0.85f, 1.15f) * clampedUserScale).coerceIn(0.85f, 1.75f)
+    )
+    val hapticEngine = rememberAppHapticEngine(
+        designStyle = designStyle,
+        enabled = hapticFeedbackEnabled
+    )
+
     val colorScheme: ColorScheme = when (designStyle) {
         DesignStyle.NOTHING_OS -> {
             if (darkTheme) NothingDarkColorScheme else NothingLightColorScheme
@@ -128,11 +160,18 @@ fun NothingNewsTheme(
     }
 
     val typography = if (designStyle == DesignStyle.NOTHING_OS) NothingTypography else MaterialYouTypography
+    val shapes = if (designStyle == DesignStyle.NOTHING_OS) NothingShapes else MaterialYouShapes
 
-    CompositionLocalProvider(LocalDesignStyle provides designStyle) {
+    CompositionLocalProvider(
+        LocalDesignStyle provides designStyle,
+        LocalIsDarkTheme provides darkTheme,
+        LocalDensity provides scaledDensity,
+        LocalHapticEngine provides hapticEngine
+    ) {
         MaterialTheme(
             colorScheme = colorScheme,
             typography = typography,
+            shapes = shapes,
             content = content
         )
     }

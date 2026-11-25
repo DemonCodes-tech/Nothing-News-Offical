@@ -81,6 +81,10 @@ fun NothingPullToRefreshIndicator(
 
         val pillShape = RoundedCornerShape(9999.dp)
 
+        val pillBg = MaterialTheme.colorScheme.surfaceContainerHigh
+        val pillBorder = MaterialTheme.colorScheme.outline
+        val dotColor = MaterialTheme.colorScheme.onSurface
+
         Box(
             modifier = modifier
                 .graphicsLayer {
@@ -90,8 +94,8 @@ fun NothingPullToRefreshIndicator(
                     alpha = alphaProgress
                 }
                 .clip(pillShape)
-                .background(Color(0xFF141414))
-                .border(1.dp, Color(0xFF2E2E2E), pillShape)
+                .background(pillBg)
+                .border(1.dp, pillBorder, pillShape)
                 .padding(horizontal = 14.dp, vertical = 7.dp)
         ) {
             Row(
@@ -117,7 +121,7 @@ fun NothingPullToRefreshIndicator(
 
                         val isLead = i == 0
                         drawCircle(
-                            color = if (isLead) SignalRed else Color.White.copy(alpha = (i + 1f) / dotCount),
+                            color = if (isLead) SignalRed else dotColor.copy(alpha = (i + 1f) / dotCount),
                             radius = if (isLead) 1.6.dp.toPx() else 1.1.dp.toPx(),
                             center = Offset(x, y)
                         )
@@ -129,7 +133,7 @@ fun NothingPullToRefreshIndicator(
                 Text(
                     text = if (isRefreshing) "CHECKING 3 SOURCES..." else "PULL FOR FACT AUDIT",
                     style = MaterialTheme.typography.labelSmall,
-                    color = Color.White
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
         }

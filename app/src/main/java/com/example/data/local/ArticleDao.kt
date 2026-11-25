@@ -20,9 +20,12 @@ interface ArticleDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(article: ArticleEntity)
 
-    @Query("UPDATE saved_articles SET readingProgress = :progress WHERE id = :id")
+    @Query("UPDATE saved_articles SET readingProgress = MAX(readingProgress, :progress) WHERE id = :id")
     suspend fun updateProgress(id: String, progress: Float)
 
     @Query("DELETE FROM saved_articles WHERE id = :id")
     suspend fun deleteById(id: String)
+
+    @Query("DELETE FROM saved_articles")
+    suspend fun deleteAllSaved()
 }

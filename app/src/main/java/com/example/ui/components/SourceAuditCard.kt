@@ -24,10 +24,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.data.model.VerificationSource
 import com.example.ui.theme.DesignStyle
 import com.example.ui.theme.LocalDesignStyle
+import com.example.ui.theme.LocalDeviceProfile
 import com.example.ui.theme.SignalRed
 
 @Composable
@@ -70,9 +72,10 @@ fun SourceAuditCard(
         )
 
         // Source Cards List
-        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            sources.forEachIndexed { index, source ->
-                val shape = RoundedCornerShape(if (isNothing) 4.dp else 18.dp)
+        val cardPad = LocalDeviceProfile.current.cardPadding
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            sources.forEachIndexed { _, source ->
+                val shape = RoundedCornerShape(if (isNothing) 4.dp else LocalDeviceProfile.current.cardRadius)
                 val cardBg = if (isNothing) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
 
                 Box(
@@ -87,7 +90,7 @@ fun SourceAuditCard(
                                 Modifier
                             }
                         )
-                        .padding(14.dp)
+                        .padding(cardPad)
                 ) {
                     Column {
                         // Source Header & Credibility Score
@@ -98,18 +101,27 @@ fun SourceAuditCard(
                         ) {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .padding(end = 6.dp)
                             ) {
+                                NewsChannelLogoBadge(
+                                    channelId = source.name,
+                                    shortCode = source.name.take(3)
+                                )
                                 Icon(
                                     imageVector = Icons.Outlined.Verified,
                                     contentDescription = "Verified Source",
-                                    tint = if (isNothing) Color.White else MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.size(16.dp)
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(15.dp)
                                 )
                                 Text(
                                     text = source.name,
                                     style = if (isNothing) MaterialTheme.typography.labelMedium else MaterialTheme.typography.titleSmall,
-                                    color = MaterialTheme.colorScheme.onSurface
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
                                 )
                             }
 
@@ -117,14 +129,15 @@ fun SourceAuditCard(
                                 modifier = Modifier
                                     .clip(RoundedCornerShape(if (isNothing) 2.dp else 8.dp))
                                     .background(
-                                        if (isNothing) Color(0xFF222222) else MaterialTheme.colorScheme.primaryContainer
+                                        if (isNothing) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.primaryContainer
                                     )
                                     .padding(horizontal = 6.dp, vertical = 2.dp)
                             ) {
                                 Text(
                                     text = "${source.credibilityScore}% ${source.tier.uppercase()}",
                                     style = MaterialTheme.typography.labelSmall,
-                                    color = if (isNothing) Color.White else MaterialTheme.colorScheme.onPrimaryContainer
+                                    color = if (isNothing) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onPrimaryContainer,
+                                    maxLines = 1
                                 )
                             }
                         }
@@ -144,7 +157,7 @@ fun SourceAuditCard(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(if (isNothing) 2.dp else 10.dp))
-                                .background(if (isNothing) Color(0xFF111111) else MaterialTheme.colorScheme.surface)
+                                .background(if (isNothing) MaterialTheme.colorScheme.surfaceContainerLow else MaterialTheme.colorScheme.surface)
                                 .then(
                                     if (isNothing) Modifier.border(0.5.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f), RoundedCornerShape(2.dp))
                                     else Modifier

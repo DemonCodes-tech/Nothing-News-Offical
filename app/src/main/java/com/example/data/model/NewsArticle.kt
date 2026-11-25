@@ -32,7 +32,14 @@ data class NewsArticle(
     val keyFacts: List<String> = emptyList(),
     val imageType: String = "NEWS", // e.g. "DESALINATION", "MEDICAL", "INFRASTRUCTURE", "SATELLITE", "MARITIME", "CLIMATE", "ENERGY", "FINANCE"
     val imageCaption: String = "Verified wire telemetry photo // Objective documentation",
+    val imageUrl: String? = null,
+    val outletCode: String? = null,
     val isSaved: Boolean = false,
     val readingProgress: Float = 0f,
-    val readTimeMinutes: Int = 3
+    val readTimeMinutes: Int = 3,
+    val countryTags: List<String> = listOf("GLOBAL"),
+    val politicalLeaning: String = "Non-Partisan",
+    val partyTags: List<String> = emptyList(),
+    val topicTags: List<String> = emptyList(),
+    val matchBadges: List<String> = emptyList()
 )

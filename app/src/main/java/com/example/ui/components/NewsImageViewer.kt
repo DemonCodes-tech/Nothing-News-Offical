@@ -15,10 +15,15 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.DirectionsCar
+import androidx.compose.material.icons.outlined.EmojiEvents
 import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.outlined.LocalHospital
+import androidx.compose.material.icons.outlined.Memory
+import androidx.compose.material.icons.outlined.SportsEsports
 import androidx.compose.material.icons.outlined.WaterDamage
 import androidx.compose.material.icons.outlined.WaterDrop
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -29,32 +34,41 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import coil.compose.SubcomposeAsyncImage
+import coil.request.ImageRequest
 import com.example.ui.theme.DesignStyle
 import com.example.ui.theme.LocalDesignStyle
+import com.example.ui.theme.LocalDeviceProfile
 import com.example.ui.theme.SignalRed
 
 @Composable
 fun NewsImageViewer(
     imageType: String,
     caption: String,
+    imageUrl: String? = null,
     modifier: Modifier = Modifier,
-    height: Dp = 180.dp,
+    height: Dp = 190.dp,
     showCaption: Boolean = true
 ) {
     val designStyle = LocalDesignStyle.current
+    val deviceProfile = LocalDeviceProfile.current
     val isNothing = designStyle == DesignStyle.NOTHING_OS
 
-    val cornerRadius = if (isNothing) 4.dp else 22.dp
+    val cornerRadius = if (isNothing) 4.dp else (deviceProfile.cardRadius - 2.dp).coerceAtLeast(10.dp)
     val shape = RoundedCornerShape(cornerRadius)
 
     val visualColors = if (isNothing) {
-        // Stark monochrome gradient for Nothing OS
         listOf(Color(0xFF1C1C1C), Color(0xFF0F0F0F), Color(0xFF262626))
     } else {
-        // Expressive Material 3 dynamic color blends
         listOf(
             MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.9f),
             MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.8f),
@@ -77,6 +91,42 @@ fun NewsImageViewer(
                     }
                 )
         ) {
+            if (!imageUrl.isNullOrBlank()) {
+                // Direct Real-Site Image Loading via Coil
+                SubcomposeAsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(imageUrl)
+                        .crossfade(true)
+                        .build(),
+                    contentDescription = caption,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop,
+                    colorFilter = if (isNothing) {
+                        // Monochrome desaturation for Nothing OS
+                        ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(0f) })
+                    } else {
+                        null // Full color for Material You
+                    },
+                    loading = {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(24.dp),
+                                color = if (isNothing) Color.White else MaterialTheme.colorScheme.primary,
+                                strokeWidth = 2.dp
+                            )
+                        }
+                    },
+                    error = {
+                        ProceduralTelemetryGraphic(imageType, isNothing)
+                    }
+                )
+            } else {
+                ProceduralTelemetryGraphic(imageType, isNothing)
+            }
+
             // Nothing OS Dot-Matrix Dither Overlay Shader
             if (isNothing) {
                 Canvas(modifier = Modifier.fillMaxSize()) {
@@ -96,47 +146,6 @@ fun NewsImageViewer(
                             }
                         }
                     }
-                }
-            }
-
-            // High-Contrast Iconographic Focal Centerpiece
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    val (icon, label) = getVisualThemeDetails(imageType)
-
-                    Box(
-                        modifier = Modifier
-                            .size(54.dp)
-                            .clip(if (isNothing) RoundedCornerShape(4.dp) else CircleShape)
-                            .background(
-                                if (isNothing) Color(0xFF141414) else MaterialTheme.colorScheme.surface.copy(alpha = 0.85f)
-                            )
-                            .then(
-                                if (isNothing) Modifier.border(1.dp, Color(0xFF333333), RoundedCornerShape(4.dp))
-                                else Modifier
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = icon,
-                            contentDescription = label,
-                            tint = if (isNothing) Color.White else MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(28.dp)
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Text(
-                        text = label,
-                        style = if (isNothing) MaterialTheme.typography.labelSmall else MaterialTheme.typography.titleMedium,
-                        color = if (isNothing) Color.White else MaterialTheme.colorScheme.onSurface
-                    )
                 }
             }
 
@@ -179,6 +188,52 @@ fun NewsImageViewer(
     }
 }
 
+@Composable
+private fun ProceduralTelemetryGraphic(imageType: String, isNothing: Boolean) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            val (icon, label) = getVisualThemeDetails(imageType)
+
+            Box(
+                modifier = Modifier
+                    .size(44.dp)
+                    .clip(if (isNothing) RoundedCornerShape(4.dp) else CircleShape)
+                    .background(
+                        if (isNothing) Color(0xFF141414) else MaterialTheme.colorScheme.surface.copy(alpha = 0.85f)
+                    )
+                    .then(
+                        if (isNothing) Modifier.border(1.dp, Color(0xFF333333), RoundedCornerShape(4.dp))
+                        else Modifier
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = label,
+                    tint = if (isNothing) Color.White else MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(22.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(6.dp))
+
+            Text(
+                text = label,
+                style = if (isNothing) MaterialTheme.typography.labelSmall else MaterialTheme.typography.titleSmall,
+                color = if (isNothing) Color.White else MaterialTheme.colorScheme.onSurface,
+                textAlign = TextAlign.Center,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+    }
+}
+
 private fun getVisualThemeDetails(imageType: String): Pair<ImageVector, String> {
     return when (imageType) {
         "DESALINATION" -> Pair(Icons.Outlined.WaterDrop, "DESALINATION & WATER PURIFICATION FACILITY")
@@ -189,6 +244,10 @@ private fun getVisualThemeDetails(imageType: String): Pair<ImageVector, String> 
         "CLIMATE" -> Pair(Icons.Outlined.WaterDrop, "PACIFIC TAO/TRITON TELEMETRY BUOY ARRAY")
         "ENERGY" -> Pair(Icons.Outlined.Image, "SYNCHROTRON 34 keV TOMOGRAPHY BEAMLINE")
         "FINANCE" -> Pair(Icons.Outlined.Image, "BIS PROJECT AGORÁ WHOLESALE SETTLEMENT")
+        "SPORTS" -> Pair(Icons.Outlined.EmojiEvents, "INTERNATIONAL SPORTS TELEMETRY DESK")
+        "CARS" -> Pair(Icons.Outlined.DirectionsCar, "AUTOMOTIVE & EV ENGINEERING AUDIT")
+        "AI" -> Pair(Icons.Outlined.Memory, "ON-DEVICE AI & NEURAL COMPUTE BENCHMARK")
+        "MEDIA" -> Pair(Icons.Outlined.SportsEsports, "GAMING & ENTERTAINMENT ARCHIVE DESK")
         else -> Pair(Icons.Outlined.Image, "OBJECTIVE FACTUAL WIRE TELEMETRY")
     }
 }

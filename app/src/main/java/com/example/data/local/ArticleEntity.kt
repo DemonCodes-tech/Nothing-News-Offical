@@ -24,6 +24,8 @@ data class ArticleEntity(
     val discrepanciesSerialized: String,
     val imageType: String,
     val imageCaption: String,
+    val imageUrl: String? = null,
+    val outletCode: String? = null,
     val readingProgress: Float,
     val readTimeMinutes: Int,
     val savedAtTimestamp: Long = System.currentTimeMillis()
@@ -79,6 +81,8 @@ data class ArticleEntity(
             keyFacts = if (keyFactsJoined.isBlank()) emptyList() else keyFactsJoined.split("||"),
             imageType = imageType,
             imageCaption = imageCaption,
+            imageUrl = imageUrl,
+            outletCode = outletCode,
             isSaved = true,
             readingProgress = readingProgress,
             readTimeMinutes = readTimeMinutes
@@ -111,6 +115,8 @@ data class ArticleEntity(
                 discrepanciesSerialized = serializedDiscrepancies,
                 imageType = article.imageType,
                 imageCaption = article.imageCaption,
+                imageUrl = article.imageUrl,
+                outletCode = article.outletCode,
                 readingProgress = article.readingProgress,
                 readTimeMinutes = article.readTimeMinutes
             )

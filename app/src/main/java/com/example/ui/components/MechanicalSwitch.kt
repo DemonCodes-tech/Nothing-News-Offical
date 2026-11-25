@@ -20,7 +20,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.example.ui.theme.DesignStyle
+import com.example.ui.theme.HapticCue
 import com.example.ui.theme.LocalDesignStyle
+import com.example.ui.theme.LocalHapticEngine
 
 @Composable
 fun MechanicalSwitch(
@@ -30,6 +32,7 @@ fun MechanicalSwitch(
     testTag: String = "mechanical_switch"
 ) {
     val designStyle = LocalDesignStyle.current
+    val hapticEngine = LocalHapticEngine.current
     val isNothing = designStyle == DesignStyle.NOTHING_OS
 
     val trackWidth = 48.dp
@@ -67,7 +70,10 @@ fun MechanicalSwitch(
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null
-            ) { onCheckedChange(!checked) },
+            ) {
+                hapticEngine?.trigger(HapticCue.UI_TOGGLE)
+                onCheckedChange(!checked)
+            },
         contentAlignment = Alignment.CenterStart
     ) {
         Box(
